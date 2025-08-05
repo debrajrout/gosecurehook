@@ -9,19 +9,20 @@ import (
 	"time"
 
 	"github.com/debrajrout/gosecurehook/internal/server"
+	"github.com/debrajrout/gosecurehook/internal/storage"
 )
 
 func main() {
-	srv := server.NewHTTPServer(":5000")
+	db := storage.InitDB("webhooks.db")
+	store := storage.NewStore(db)
+	srv := server.NewHTTPServer(":5000", store)
 
-	// Run server in a goroutine
 	go func() {
 		if err := srv.Start(); err != nil {
 			log.Fatalf("Server error: %v", err)
 		}
 	}()
 
-	// Wait for interrupt signal for graceful shutdown
 	stop := make(chan os.Signal, 1)
 	signal.Notify(stop, syscall.SIGINT, syscall.SIGTERM)
 
